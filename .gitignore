@@ -1,0 +1,39 @@
+#Python
+**/__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.env
+.env
+env/
+venv/
+.venv/
+
+# Build / Distribution
+build/
+dist/
+*.egg-info/
+*.egg
+
+# Test and Coverage
+.tox/
+.pytest_cache/
+.coverage
+nosetests.xml
+coverage.xml
+htmlcov/
+
+
+# System/IDE files
+.DS_Store
+.idea/
+.vscode/
+
+# Others
+*.log
+
+#Google Cloud Vision stuff
+*.json
+.config/gcloud/
+*credentials*
+*service-account*
