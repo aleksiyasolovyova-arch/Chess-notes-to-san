@@ -1,6 +1,6 @@
 import re
 from typing import Dict, Any, Tuple, Optional
-from parsed_output import ParsedMove
+from .parsed_output import ParsedMove
 
 class ChessParser:
     def __init__(self, language_configs: Dict[str, Any]):
