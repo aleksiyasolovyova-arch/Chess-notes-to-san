@@ -36,7 +36,7 @@ def sample_configs():
                         'replacement': 'x'
                     },
                     {
-                        'pattern': r'\b[Il](?=[a-h])',
+                        'pattern': '\b[Il](?=[a-h1-8])',
                         'replacement': '1'
                     },
                     {
@@ -50,12 +50,12 @@ def sample_configs():
                         'order': 1
                     },
                     'promotion': {
-                        'pattern': r'(?:=|/)([NBRQK])$',
-                        'order': 2
+                        'pattern': r'(?:=|\/)([NBRQK])$',
+                        'order': 3
                     },
                     'check_or_mate': {
                         'pattern': r'([+#])$',
-                        'order': 3
+                        'order': 2
                     },
                     'destination_square': {
                         'pattern': r'([a-h][1-8])$',
@@ -106,11 +106,11 @@ def sample_configs():
                     },
                     'promotion': {
                         'pattern': r'(?:=|/)([KDTLP])$',
-                        'order': 2
+                        'order': 3
                     },
                     'check_or_mate': {
                         'pattern': r'([+#])$',
-                        'order': 3
+                        'order': 2
                     },
                     'destination_square': {
                         'pattern': r'([a-h][1-8])$',
