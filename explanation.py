@@ -74,7 +74,6 @@ TRANSLATIONS = {
 
 
 def _parse_san_parts(san):
-    """Extract piece type, target square, and disambiguation from SAN string."""
     clean = san.replace("+", "").replace("#", "").replace("x", "")
 
     if clean in ("O-O", "O-O-O"):
@@ -102,7 +101,6 @@ def _parse_san_parts(san):
 
 
 def _filter_by_disambig(pieces, disambig):
-    """Filter candidate squares using SAN disambiguation (file, rank, or both)."""
     if not disambig:
         return pieces
     filtered = []
@@ -121,7 +119,6 @@ def _filter_by_disambig(pieces, disambig):
 
 
 def _is_blocked_path(board, from_sq, to_sq):
-    """Check if a sliding piece's path is blocked."""
     between = chess.SquareSet(chess.between(from_sq, to_sq))
     if not between and from_sq != to_sq:
         return False
@@ -129,7 +126,6 @@ def _is_blocked_path(board, from_sq, to_sq):
 
 
 def _find_blocker(board, from_sq, to_sq):
-    """Return the first blocking piece as (color, piece_type, square)."""
     between = chess.SquareSet(chess.between(from_sq, to_sq))
     for sq in between:
         piece = board.piece_at(sq)
@@ -139,7 +135,6 @@ def _find_blocker(board, from_sq, to_sq):
 
 
 def explain_illegal(board, san, lang="en"):
-    """Give a specific reason why a SAN move is illegal."""
     t = TRANSLATIONS[lang]
     color = t["colors"][board.turn]
     piece_type, target_sq, disambig = _parse_san_parts(san)
