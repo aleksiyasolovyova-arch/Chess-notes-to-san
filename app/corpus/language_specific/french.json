@@ -60,7 +60,7 @@
         "replacement": "x"
       },
       {
-        "pattern": "\\b[Il](?=[a-h])",
+        "pattern": "(?<=[RDTFC])[Il](?=[a-h])",
         "replacement": "1"
       },
       {
@@ -76,11 +76,11 @@
       },
       "promotion": {
         "pattern": "(?:=|\\/)([RDTFC])$",
-        "order": 2
+        "order": 3
       },
       "check_or_mate": {
         "pattern": "([+#])$",
-        "order": 3
+        "order": 2
       },
       "destination_square": {
         "pattern": "([a-h][1-8])$",

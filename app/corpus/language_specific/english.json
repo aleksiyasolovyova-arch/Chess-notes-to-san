@@ -60,7 +60,7 @@
         "replacement": "x"
       },
       {
-        "pattern": "\\b[Il](?=[a-h][1-8]\\b)",
+        "pattern": "(?<=[NBRQK])[Il](?=[a-h])",
         "replacement": "1"
       },
       {
