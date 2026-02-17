@@ -10,8 +10,6 @@ router = APIRouter(prefix="/api/scoresheets", tags=["scoresheets"])
 MAX_SIZE = 10 * 1024 * 1024
 ACCEPTED_TYPES = {"image/jpeg", "image/png", "image/webp", "application/pdf"}
 
-#TODO: some kind of exception handling, idk if here
-
 @router.post("", response_model=ScoresheetDTO)
 async def upload_scoresheet( file: UploadFile = File(...), ocr: OCRService = Depends(get_ocr_service), parser: ParsingService = Depends(get_parsing_service)):
     if file.content_type not in ACCEPTED_TYPES:
