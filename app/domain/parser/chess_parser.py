@@ -1,16 +1,10 @@
 import re
-from typing import Dict, Any, Tuple, Optional
-from .parsed_output import ParsedMove
+from typing import Dict, Any, Optional
+from app.domain.parsed_output import ParsedMove
 
 class ChessParser:
     def __init__(self, language_configs: Dict[str, Any]):
         self.configs = language_configs
-
-        self.san_maps = {
-            'en': {'N': 'N', 'B': 'B', 'R': 'R', 'Q': 'Q', 'K': 'K'},
-            'nl': {'P': 'N', 'L': 'B', 'T': 'R', 'D': 'Q', 'K': 'K'},
-            'fr': {'C': 'N', 'F': 'B', 'T': 'R', 'D': 'Q', 'R': 'K'}
-        }
 
         self._validate_configs()
 

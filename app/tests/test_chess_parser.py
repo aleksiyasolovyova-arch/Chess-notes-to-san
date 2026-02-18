@@ -1,8 +1,7 @@
 import pytest
-import sys
 
-from app.parser import ChessParser
-from app.parsed_output import ParsedMove
+from app.domain.parser.chess_parser import ChessParser
+from app.domain.parsed_output import ParsedMove
 
 
 # ============================================================================
@@ -36,7 +35,7 @@ def sample_configs():
                         'replacement': 'x'
                     },
                     {
-                        'pattern': '\b[Il](?=[a-h1-8])',
+                        'pattern': '(?<=[NBRQK])[Il](?=[a-h])',
                         'replacement': '1'
                     },
                     {
@@ -93,6 +92,10 @@ def sample_configs():
                     {
                         'pattern': ':',
                         'replacement': 'x'
+                    },
+                    {
+                        'pattern': '(?<=[KDTLP])[Il](?=[a-h])',
+                        'replacement': '1'
                     },
                     {
                         'pattern': r'\s+',
@@ -282,7 +285,8 @@ def test_parse_disambiguation(parser, raw_input, expected_piece, expected_dest, 
 @pytest.mark.parametrize("raw_input,expected_clean", [
     ("N f3", "Nf3"),  # Whitespace removal
     ("e:d5", "exd5"),  # Colon to x
-    ("Il6", "116"),  # I/l to 1 before file
+    ("RIa3", "R1a3"), # I/l to 1 before file
+    ("Blh6", "B1h6"),
     ("e 4 +", "e4+"),  # Multiple spaces
 ])
 def test_input_cleaning(parser, raw_input, expected_clean):
