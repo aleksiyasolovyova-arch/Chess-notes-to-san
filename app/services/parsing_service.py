@@ -20,9 +20,9 @@ class ParsingService:
                 configs[code] = json.load(f)
         return configs
 
-    def parse_moves(self, raw_moves: List[str], lang: str) -> List[MoveDTO]:
+    def parse_moves(self, raw_moves: List[str], lang: str) -> List[str]:
         parsed: List[ParsedMove] = self._parser.parse_batch(raw_moves, lang)
-        return [self._to_dto(p) for p in parsed]
+        return [p.san_intent for p in parsed]
 
     def _to_dto(self, move: ParsedMove) -> MoveDTO:
         return MoveDTO(

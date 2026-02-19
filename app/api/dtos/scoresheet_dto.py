@@ -13,5 +13,5 @@ class ScoresheetDTO(BaseModel):
     date: str
     tournament: str
     lang: str
-    moves: List[MoveDTO]
+    moves: List[str]
     status: str
