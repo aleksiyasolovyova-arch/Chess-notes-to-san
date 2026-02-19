@@ -1,3 +1,5 @@
+from typing import Dict, Any
+
 from fastapi import APIRouter, UploadFile, File, HTTPException, Depends
 
 from app.api.dependencies import get_ocr_service, get_parsing_service
@@ -20,17 +22,20 @@ async def upload_scoresheet( file: UploadFile = File(...), ocr: OCRService = Dep
         raise HTTPException(status_code=400, detail="File too large. Maximum size is 10 MB.")
 
     ocr_result = ocr.process_scoresheet(contents)
-    moves_dto = parser.parse_moves(ocr_result["raw_moves"], ocr_result["lang"])
-
+    parse_result: Dict[str, Any] = parser.parse_scoresheet(
+        ocr_result["raw_text"],
+        ocr_result["raw_moves"]
+    )
+    print(parse_result["lang"])
     return ScoresheetDTO(
         filename=file.filename,
-        white=ocr_result["white"],
-        white_elo=ocr_result["white_elo"],
-        black=ocr_result["black"],
-        black_elo=ocr_result["black_elo"],
-        date=ocr_result["date"],
-        tournament=ocr_result["tournament"],
-        lang=ocr_result["lang"],
-        moves=moves_dto,
-        status="success",
+        white=parse_result["header"].get("white_player", ""),
+        white_elo=parse_result["header"].get("white_elo"),
+        black=parse_result["header"].get("black_player", ""),
+        black_elo=parse_result["header"].get("black_elo"),
+        date=parse_result["header"].get("date"),
+        tournament=parse_result["header"].get("tournament"),
+        lang=parse_result["lang"],
+        moves=parse_result["moves"],
+        status="success"
     )

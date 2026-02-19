@@ -1,5 +1,4 @@
-from typing import List, Dict, Any
-
+import random
 #TODO: literally replace this whole service lmao
 
 class OCRService:
@@ -47,22 +46,15 @@ class OCRService:
         }
 
     def process_scoresheet(self, image_bytes: bytes) -> dict:
-        lang = "en"  # Dynamic later
-
-        mock_moves = {
-            "en": ["e4", "e5", "Nf3", "Nc6", "Bb5", "a6"],
-            "fr": ["e4", "e5", "Cf3", "Cc6", "Fb5", "a6"],  # French pieces
-            "nl": ["e4", "e5", "Pf3", "Pc6", "Lb5", "a6"],  # Dutch pieces
-        }
-
         return {
-            "white": "Magnus Carlsen",
-            "black": "Fabiano Caruana",
-            "white_elo": 2830,
-            "black_elo": 2800,
-            "date": "2024-10-12",
-            "tournament": "Sinquefield Cup",
-            "lang": lang,
-            "raw_moves": mock_moves[lang]
+            "raw_text": """
+        White: Magnus Carlsen
+        Elo: 2830
+        Black: Fabiano Caruana  
+        Elo: 2800
+        Tournament: Sinquefield Cup
+        Date: 2024-10-12
+        """,
+            "raw_moves": ["e4", "e5", "Pf3", "Pc6", "Lb5", "a6"]
         }
 
