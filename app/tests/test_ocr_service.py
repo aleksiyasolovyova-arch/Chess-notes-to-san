@@ -53,6 +53,16 @@ class TestPreprocessingPipeline:
         h, w = img.shape[:2]
         assert abs(w / h - 2.0) < 0.05
 
+    def test_portrait_image_is_resized(self):
+        result = PreprocessingPipeline().run(make_image_bytes(3000, 4000))
+        img = cv2.imdecode(np.frombuffer(result, np.uint8), cv2.IMREAD_COLOR)
+        assert max(img.shape[:2]) == 1568
+
+    def test_image_at_exact_limit_not_resized(self):
+        result = PreprocessingPipeline().run(make_image_bytes(1568, 1000))
+        img = cv2.imdecode(np.frombuffer(result, np.uint8), cv2.IMREAD_COLOR)
+        assert max(img.shape[:2]) <= 1568
+
     def test_corrupt_bytes_raises(self):
         with pytest.raises(ValueError, match="Could not decode"):
             PreprocessingPipeline().run(b"not an image")
@@ -113,6 +123,12 @@ class TestOCRServiceParse:
         wrapped = f"```\n{make_json()}\n```"
         header, _ = service._parse(wrapped)
         assert header.white == "Alice"
+
+    def test_missing_moves_key_defaults_to_empty(self, service):
+        data = json.loads(make_json())
+        del data["raw_moves"]
+        _, moves = service._parse(json.dumps(data))
+        assert moves == []
 
     def test_invalid_json_raises(self, service):
         with pytest.raises(json.JSONDecodeError):
