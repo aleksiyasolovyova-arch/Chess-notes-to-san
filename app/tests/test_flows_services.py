@@ -1,13 +1,30 @@
+import json
+from unittest.mock import Mock
+
 import pytest
 
 from app.services.ocr_service import OCRService
 from app.services.parsing_service import ParsingService
+from app.services.preprocessing.pipeline import PreprocessingPipeline
 from app.services.validation_service import ValidationService
 
 
 @pytest.fixture
 def ocr_service():
-    return OCRService()
+    provider = Mock()
+    provider.recognize.return_value = json.dumps({
+        "white": "Shakira",
+        "white_elo": 1000,
+        "black": "Emmanuel Macron",
+        "black_elo": 1000,
+        "date": "2026-02-09",
+        "tournament": "Interland",
+        "lang": "en",
+        "raw_moves": ["e4", "e5", "Nf3", "Nc6", "Bb5", "a6"],
+    })
+    pipeline = Mock()
+    pipeline.run.return_value = b"preprocessed"
+    return OCRService(provider=provider, pipeline=pipeline)
 
 
 @pytest.fixture
@@ -22,26 +39,19 @@ def validation_service():
 
 def test_flow1_ocr_to_parsed_moves(ocr_service, parsing_service):
     """End-to-end: fake OCR → parsed moves DTOs."""
-    # In reality this would be bytes from an uploaded file
-    dummy_bytes = b"fake image data"
+    header, raw_moves = ocr_service.process_scoresheet(b"fake image data")
 
-    ocr_result = ocr_service.process_scoresheet(dummy_bytes)
+    assert isinstance(raw_moves, list)
+    assert header.lang in ("en", "nl", "fr")
 
-    assert "raw_moves" in ocr_result
-    assert isinstance(ocr_result["raw_moves"], list)
-    assert ocr_result["lang"] in ("en", "nl", "fr")
-
-    moves_dto = parsing_service.parse_moves(
-        ocr_result["raw_moves"], ocr_result["lang"]
-    )
+    moves_dto = parsing_service.parse_moves(raw_moves, header.lang)
 
     # Parsed list matches raw length
-    assert len(moves_dto) == len(ocr_result["raw_moves"])
+    assert len(moves_dto) == len(raw_moves)
 
     # DTO properties look reasonable
     first = moves_dto[0]
-    assert first.raw_input == ocr_result["raw_moves"][0]
-    # san_intent should be non-empty string (after cleaning)
+    assert first.raw_input == raw_moves[0]
     assert isinstance(first.san_intent, str)
     assert first.san_intent != "" or first.raw_input.strip() == ""
 

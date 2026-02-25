@@ -1,60 +1,41 @@
-import random
-#TODO: literally replace this whole service lmao
+import json
+
+from app.domain.scoresheet import ScoresheetHeader
+from app.services.ocr.base import OCRProvider
+from app.services.preprocessing.pipeline import PreprocessingPipeline
+
 
 class OCRService:
-    def __init__(self):
-        self.mock_data = {
-            "en": {
-                "white": "Magnus Carlsen",
-                "black": "Fabiano Caruana",
-                "white_elo": 2830,
-                "black_elo": 2800,
-                "date": "2024-10-12",
-                "tournament": "Sinquefield Cup",
-                "lang": "en",
-                "raw_moves": [
-                    "e4", "e5", "Nf3", "Nc6", "Bb5", "a6",
-                    "Ba4", "Nf6", "O-O", "Be7", "Re1", "b5"
-                ]
-            },
-            "fr": {
-                "white": "Pierre Dubois",
-                "black": "Marie Laurent",
-                "white_elo": 2250,
-                "black_elo": 2230,
-                "date": "2025-02-15",
-                "tournament": "Tournoi Lier",
-                "lang": "fr",
-                "raw_moves": [
-                    "e4", "e5", "Cf3", "Cc6", "Fb5", "a6",
-                    "Fb4", "Cf6", "O-O", "Fe7", "Re1", "b5"
-                ]
-            },
-            "nl": {
-                "white": "Jan de Vries",
-                "black": "Els van Dijk",
-                "white_elo": 2180,
-                "black_elo": 2160,
-                "date": "2026-01-20",
-                "tournament": "Lier Open",
-                "lang": "nl",
-                "raw_moves": [
-                    "e4", "e5", "Pf3", "Pc6", "Lb5", "a6",
-                    "Lb4", "Pf6", "O-O", "Le7", "Te1", "b5"
-                ]
-            }
-        }
+    def __init__(self, provider: OCRProvider, pipeline: PreprocessingPipeline) -> None:
+        self._provider = provider
+        self._pipeline = pipeline
 
-    def process_scoresheet(self, image_bytes: bytes) -> dict:
-        return {
-            "raw_text": """
-        White: Magnus Carlsen
-        Elo: 2830
-        Black: Fabiano Caruana  
-        Elo: 2800
-        Tournament: Sinquefield Cup
-        Date: 2024-10-12
-        """,
-            "raw_moves": ["e4", "e5", "Pf3", "Pc6", "Lb5", "a6"]
-        }
+    def process_scoresheet(self, file_bytes: bytes) -> tuple[ScoresheetHeader, list[str]]:
+        preprocessed = self._pipeline.run(file_bytes)
+        raw_text = self._provider.recognize(preprocessed)
+        return self._parse(raw_text)
 
+    def _parse(self, raw_text: str) -> tuple[ScoresheetHeader, list[str]]:
+        text = raw_text.strip()
+
+        # Strip markdown code fences if the model wrapped the JSON in them
+        if text.startswith("```"):
+            text = text.split("```", 2)[1]
+            if text.startswith("json"):
+                text = text[4:]
+            text = text.rsplit("```", 1)[0].strip()
+
+        data = json.loads(text)
+
+        header = ScoresheetHeader(
+            white=data.get("white") or "Unknown",
+            white_elo=data.get("white_elo") or 0,
+            black=data.get("black") or "Unknown",
+            black_elo=data.get("black_elo") or 0,
+            date=data.get("date") or "",
+            tournament=data.get("tournament") or "",
+            lang=data.get("lang") or "en",
+        )
+        raw_moves: list[str] = data.get("raw_moves") or []
+
+        return header, raw_moves
