@@ -1,3 +1,5 @@
+from typing import Dict, Any
+
 from fastapi import APIRouter, UploadFile, File, HTTPException, Depends
 
 from app.api.dependencies import get_ocr_service, get_parsing_service

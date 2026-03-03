@@ -12,7 +12,7 @@ async def validate_moves(body: ValidateRequestDTO, service: ValidationService = 
     try:
         result = service.validate_moves(body.moves, lang=body.lang)
         return ValidateResponseDTO(
-            all_legal=result["all_legal"],
+            legal=result["all_legal"],
             moves=[
                 MoveValidationResultDTO(**m)
                 for m in result["moves"]
