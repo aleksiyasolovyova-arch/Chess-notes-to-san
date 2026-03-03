@@ -135,24 +135,16 @@ def sample_configs():
 
 @pytest.fixture
 def parser(sample_configs):
-    """Initialize ChessParser with sample configs."""
     return ChessParser(sample_configs)
 
 
-# ============================================================================
-# INITIALIZATION TESTS
-# ============================================================================
-
 def test_parser_initialization(sample_configs):
-    """Test parser initializes correctly with valid configs."""
     parser = ChessParser(sample_configs)
-    assert parser.configs == sample_configs
+    assert parser.grid_configs == sample_configs
 
 
 def test_parser_validation_fails_missing_grid_section():
-    """Test parser raises error when grid_section is missing."""
-    invalid_config = {'en': {'wrong_key': {}}}
-
+    invalid_config = {"en": {"wrong_key": {}}}
     with pytest.raises(ValueError, match="Invalid config for language 'en'"):
         ChessParser(invalid_config)
 

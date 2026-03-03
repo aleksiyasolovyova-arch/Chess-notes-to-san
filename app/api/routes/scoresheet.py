@@ -22,17 +22,17 @@ async def upload_scoresheet( file: UploadFile = File(...), ocr: OCRService = Dep
         raise HTTPException(status_code=400, detail="File too large. Maximum size is 10 MB.")
 
     header, raw_moves = ocr.process_scoresheet(contents)
-    moves_dto = parser.parse_moves(raw_moves, header.lang)
+    moves_dto = parser.parse_scoresheet(header, raw_moves)
 
     return ScoresheetDTO(
         filename=file.filename,
-        white=header.white,
-        white_elo=header.white_elo,
-        black=header.black,
-        black_elo=header.black_elo,
-        date=header.date,
-        tournament=header.tournament,
-        lang=header.lang,
-        moves=moves_dto,
+        white=moves_dto["header"].white,
+        white_elo=moves_dto["header"].white_elo,
+        black=moves_dto["header"].black,
+        black_elo=moves_dto["header"].black_elo,
+        date=moves_dto["header"].date,
+        tournament=moves_dto["header"].tournament,
+        lang=moves_dto["lang"],
+        moves=moves_dto["moves"],
         status="success",
     )

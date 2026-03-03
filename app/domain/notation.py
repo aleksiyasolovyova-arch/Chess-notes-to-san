@@ -31,7 +31,7 @@ def translate_notation(move: str, lang: str) -> str:
         return move
     mapping = NOTATION_CONFIG.get(lang)
     if not mapping:
-        raise ValueError(f"Unsupported lang '{lang}'")
+        raise ValueError(f"Unsupported language: '{lang}'")
 
     if move in ("O-O", "O-O-O"):
         return move
