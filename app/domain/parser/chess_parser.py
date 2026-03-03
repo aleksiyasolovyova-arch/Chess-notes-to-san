@@ -1,72 +1,76 @@
 import re
-from typing import Dict, Any, Optional
+from typing import Dict, Any, Optional, List
 from app.domain.parsed_output import ParsedMove
+from app.domain.notation import NOTATION_CONFIG, detect_notation_language
+
 
 class ChessParser:
-    def __init__(self, language_configs: Dict[str, Any]):
-        self.configs = language_configs
-
+    def __init__(self, grid_configs: Dict[str, Any]):
+        self.grid_configs = grid_configs
+        self.signatures = {lang: set(mapping.keys()) for lang, mapping in NOTATION_CONFIG.items()}
         self._validate_configs()
 
     def _validate_configs(self) -> None:
-          required_keys = ['grid_section']
-          for lang_code, config in self.configs.items():
-              if not all(key in config for key in required_keys):
-                  raise ValueError(f"Invalid config for language '{lang_code}'")
+        required = ["grid_section"]
+        for lang, config in self.grid_configs.items():
+            if not all(k in config for k in required):
+                raise ValueError(f"Invalid config for language '{lang}': missing {required}")
 
+    def detect_notation_language(self, raw_moves: List[str]) -> str:
+        return detect_notation_language(raw_moves)
 
-    def parse(self, raw_input: str, lang_code: str = 'en') -> ParsedMove:
-        if lang_code not in self.configs:
-            raise ValueError(
-                f"Language '{lang_code}' not supported. "
-                f"Available: {list(self.configs.keys())}"
-            )
+    def parse_moves(self, raw_moves: List[str]) -> List[ParsedMove]:
+        lang = self.detect_notation_language(raw_moves)
+        return self.parse_batch(raw_moves, lang)
 
-        config = self.configs[lang_code]
-        grid_config = config['grid_section']
+    def parse_batch(self, raw_moves: List[str], lang: str = "en") -> List[ParsedMove]:
+        if lang not in self.grid_configs:
+            available = ", ".join(sorted(self.grid_configs.keys()))
+            raise ValueError(f"Language '{lang}' not supported. Available: {available}")
+        return [self.parse(move, lang) for move in raw_moves]
 
-        cleaned = self._clean_input(raw_input, grid_config['cleaning_rules'])
+    def parse(self, raw_input: str, lang: str = "en") -> ParsedMove:
+        if lang not in self.grid_configs:
+            available = ", ".join(sorted(self.grid_configs.keys()))
+            raise ValueError(f"Language '{lang}' not supported. Available: {available}")
 
-        castling_move = self._try_parse_castling(raw_input, cleaned, grid_config)
-        if castling_move:
-            return castling_move
+        config = self.grid_configs[lang]["grid_section"]
+        cleaned = self._clean_input(raw_input, config["cleaning_rules"])
 
-        components = self._extract_components(cleaned, grid_config)
+        castling = self._try_parse_castling(raw_input, cleaned, config)
+        if castling:
+            return castling
+
+        components = self._extract_components(cleaned, config)
 
         return ParsedMove(
             raw_input=raw_input,
             san_intent=cleaned,
             move_type="standard",
-            piece=components['piece'],
-            destination=components['destination'],
-            disambiguation=components['disambiguation'],
-            promotion=components['promotion'],
-            check_state=components['check_state'],
-            is_capture=components['is_capture']
-
+            piece=components.get("piece", ""),
+            destination=components.get("destination"),
+            disambiguation=components.get("disambiguation"),
+            promotion=components.get("promotion"),
+            check_state=components.get("check_state"),
+            is_capture=components.get("is_capture", False),
         )
 
 
-
     def _clean_input(self, text: str, rules: list) -> str:
-
         for rule in rules:
             text = re.sub(rule['pattern'], rule['replacement'], text)
         return text.strip()
 
-    def _try_parse_castling(self, raw: str, clean: str, grid_config: Dict) -> Optional[ParsedMove]:
+    def _try_parse_castling(self, raw: str, clean_move: str, grid_config: Dict) -> Optional[ParsedMove]:
         pattern = grid_config['extraction_patterns']['castling']['pattern']
-        match = re.search(pattern, clean)
-
-        if not match:
+        if not re.search(pattern, clean_move):
             return None
 
-        san_move = clean
-        castle_type = "queenside" if "O-O-O" in san_move else "kingside"
+        castle_type = "queenside" if "O-O-O" in clean_move else "kingside"
 
         return ParsedMove(
             raw_input=raw,
-            san_intent=san_move,
+            san_intent=clean_move,
             move_type="castling",
             piece="K",
             destination=None,
@@ -78,7 +82,7 @@ class ChessParser:
 
     def _extract_components(self, cleaned: str, grid_config: Dict) -> Dict[str, Any]:
         patterns = grid_config['extraction_patterns']
-        components = {
+        components: Dict[str, Any] = {
             'piece': '',
             'destination': None,
             'disambiguation': None,
@@ -137,8 +141,3 @@ class ChessParser:
             components['disambiguation'] = remaining
 
         return components
-
-    def parse_batch(self, raw_inputs: list[str], lang_code: str = 'en') -> list[ParsedMove]:
-        return[self.parse(raw, lang_code) for raw in raw_inputs]
-
-

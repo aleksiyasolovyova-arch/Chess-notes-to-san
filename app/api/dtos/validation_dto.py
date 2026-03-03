@@ -15,5 +15,5 @@ class MoveValidationResultDTO(BaseModel):
 
 
 class ValidateResponseDTO(BaseModel):
-    all_legal: bool
+    legal: bool
     moves: List[MoveValidationResultDTO]
