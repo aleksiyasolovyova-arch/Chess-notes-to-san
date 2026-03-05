@@ -1,0 +1,18 @@
+services:
+  backend:
+    image: registry.gitlab.com/kdg-ti/the-lab/teams-25-26/19-fae-notes2san/notes-to-san:latest
+    env_file: .env
+    ports:
+      - "8000:8000"
+    restart: unless-stopped
+
+  frontend:
+    image: registry.gitlab.com/kdg-ti/the-lab/teams-25-26/19-fae-notes2san/chess-frontend:latest
+    environment:
+      - API_URL=http://backend:8000
+    ports:
+      - "8501:8501"
+    depends_on:
+      backend:
+        condition: service_healthy
+    restart: unless-stopped

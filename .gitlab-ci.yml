@@ -1,0 +1,114 @@
+include:
+  - template: Jobs/Dependency-Scanning.gitlab-ci.yml
+  - template: Jobs/SAST.gitlab-ci.yml
+
+stages:
+  # - lint
+  - build
+  - test
+  - package
+
+# Override security jobs to make them blocking
+gemnasium-python-dependency_scanning:
+  allow_failure: false
+
+semgrep-sast:
+  allow_failure: false
+
+variables:
+  PYTHON_IMAGE: python:3.12-slim
+  PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
+
+cache:
+  key: ${CI_COMMIT_REF_SLUG}
+  paths:
+    - .cache/pip
+    - .pytest_cache
+
+# lint:
+#   stage: lint
+#   image: $PYTHON_IMAGE
+#   before_script:
+#     - pip install flake8 black
+#   script:
+#     - echo "Auto-formatting with black..."
+#     - black --line-length=120 app
+#     - echo "Running flake8..."
+#     - flake8 app --max-line-length=120 --exclude=__pycache__,.pytest_cache
+#   rules:
+#     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+#       changes:
+#         - app/**/*.py
+#     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+#       changes:
+#         - app/**/*.py
+
+build:
+  stage: build
+  image: $PYTHON_IMAGE
+  before_script:
+    - python --version ; pip --version
+  script:
+    - python -m pip install --upgrade pip
+    - pip install -r requirements.txt
+  artifacts:
+    paths:
+      - .cache/pip
+    expire_in: 1 day
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+
+test:
+  stage: test
+  image: $PYTHON_IMAGE
+  dependencies:
+    - build
+  before_script:
+    - pip install -r requirements.txt
+    - pip install pytest-cov
+  script:
+    - pytest app/tests/ -v --junitxml=report.xml --cov=app --cov-report=xml --cov-report=term
+  coverage: '/(?i)total.*? (100(?:\.0+)?\%|[1-9]?\d(?:\.\d+)?\%)$/'
+  artifacts:
+    when: always
+    reports:
+      junit: report.xml
+      coverage_report:
+        coverage_format: cobertura
+        path: coverage.xml
+    paths:
+      - htmlcov/
+    expire_in: 1 week
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+
+package:
+  stage: package
+  image: docker:27
+  services:
+    - docker:27-dind
+  variables:
+    DOCKER_HOST: tcp://docker:2375
+    DOCKER_TLS_CERTDIR: ""
+  before_script:
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
+  script:
+    - |
+      DOCKER_IMAGE="$CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA"
+      docker build -t "$DOCKER_IMAGE" .
+      docker push "$DOCKER_IMAGE"
+      if [ "$CI_COMMIT_BRANCH" = "$CI_DEFAULT_BRANCH" ]; then
+        docker tag "$DOCKER_IMAGE" "$CI_REGISTRY_IMAGE:latest"
+        docker push "$CI_REGISTRY_IMAGE:latest"
+      fi
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH && $CI_PIPELINE_SOURCE != "merge_request_event"
+      changes:
+        - app/**/*
+        - requirements.txt
+        - Dockerfile
+      when: on_success
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH && $CI_PIPELINE_SOURCE != "merge_request_event"
+      when: manual
