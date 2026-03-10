@@ -1,8 +1,11 @@
 import json
+import re
 
 from app.domain.scoresheet import ScoresheetHeader
 from app.services.ocr.base import OCRProvider
 from app.services.preprocessing.pipeline import PreprocessingPipeline
+
+_MOVE_NUMBER_RE = re.compile(r"^(\d+)\.{1,3}\s*(.+)$")
 
 
 class OCRService:
@@ -38,4 +41,19 @@ class OCRService:
         )
         raw_moves: list[str] = data.get("raw_moves") or []
 
-        return header, raw_moves
+        return header, _sort_and_strip_move_numbers(raw_moves)
+
+
+def _sort_and_strip_move_numbers(moves: list[str]) -> list[str]:
+    numbered: list[tuple[int, str]] = []
+    unnumbered: list[str] = []
+
+    for move in moves:
+        match = _MOVE_NUMBER_RE.match(move.strip())
+        if match:
+            numbered.append((int(match.group(1)), match.group(2)))
+        else:
+            unnumbered.append(move)
+
+    numbered.sort(key=lambda x: x[0])
+    return [move for _, move in numbered] + unnumbered
