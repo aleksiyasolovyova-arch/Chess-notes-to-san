@@ -11,8 +11,11 @@ def to_pgn(header: ScoresheetHeader, moves_san: List[str]) -> str:
         f'[Round "?"]',
         f'[White "{header.white or "?"}"]',
         f'[Black "{header.black or "?"}"]',
+        f'[WhiteElo "{header.white_elo or "?"}"]',
+        f'[BlackElo "{header.black_elo or "?"}"]',
         f'[Result "*"]',
     ]
+
     parts = []
     move_no = 1
     for i in range(0, len(moves_san), 2):

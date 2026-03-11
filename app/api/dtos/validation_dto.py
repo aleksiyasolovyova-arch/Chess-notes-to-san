@@ -1,11 +1,10 @@
 from typing import List, Optional
 from pydantic import BaseModel
 
-# TODO: discuss with eva about these thingies, have to align better with frontend maybe
 
 class ValidateRequestDTO(BaseModel):
     moves: List[str]
-    lang: str = "en"
+    ui_lang: str = "en"
 
 
 class MoveValidationResultDTO(BaseModel):

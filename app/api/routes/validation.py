@@ -15,16 +15,19 @@ router = APIRouter(prefix="/api/validate", tags=["validation"])
 @router.post("", response_model=ValidateResponseDTO)
 async def validate_moves(body: ValidateRequestDTO, service: ValidationService = Depends(get_validation_service)):
     try:
-        result = service.validate_moves(body.moves, lang=body.lang)
+        notation_lang = detect_notation_language(body.moves)
+        result = service.validate_moves(
+            body.moves,
+            notation_lang=notation_lang,
+            ui_lang=body.ui_lang,
+        )
         return ValidateResponseDTO(
             legal=result["all_legal"],
-            moves=[
-                MoveValidationResultDTO(**m)
-                for m in result["moves"]
-            ],
+            moves=[MoveValidationResultDTO(**m) for m in result["moves"]],
         )
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
+
 
 @router.post("/pgn", response_class=PlainTextResponse)
 async def export_pgn(body: PGNRequestDTO):
