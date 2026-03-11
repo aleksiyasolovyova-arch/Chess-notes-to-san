@@ -77,9 +77,10 @@ class TestToPgnMoves:
 
     def test_empty_moves(self, full_header):
         pgn = to_pgn(full_header, [])
-        assert "*" in pgn
-        # No move numbers
-        assert "1." not in pgn
+        assert pgn.strip().endswith("*")
+        # Split off the tags block; moves section should be just "*"
+        moves_section = pgn.split("\n\n")[1].strip()
+        assert moves_section == "*"
 
     def test_move_numbering_is_sequential(self, full_header):
         moves = ["e4", "e5", "Nf3", "Nc6", "Bb5", "a6"]
