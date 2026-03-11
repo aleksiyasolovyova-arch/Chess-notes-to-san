@@ -17,16 +17,15 @@ Return a JSON object with exactly these fields:
   "date": "<date in YYYY-MM-DD format, or null if not present>",
   "tournament": "<tournament name as a string, or null if not present>",
   "lang": "<language code: en, fr, or nl>",
-  "raw_moves": ["1. <move1>", "2. <move2>", "3. <move3>", ...]
+  "raw_moves": ["1. <white_move1>", "1... <black_move1>", "2. <white_move2>", "2... <black_move2>", ...]
 }
 
 Rules:
-- raw_moves: flat list of individual moves, each prefixed by its sequence number (e.g. "1. e4", "2. e5", "3. Nf3"), alternating white then black
+- raw_moves: flat list of individual moves using the move numbers printed on the scoresheet — white moves as "N. move" and black moves as "N... move" (e.g. "1. e4", "1... e5", "2. Nf3", "2... Nc6")
 - Preserve move notation exactly as written on the scoresheet (keep original piece letters — e.g. Dutch uses P/L/T/D/K, French uses C/F/T/D/R)
 - lang: infer from piece letter conventions or header text (en=English, fr=French, nl=Dutch)
 - Return only the JSON object — no markdown, no explanation, no extra text
 """
-
 
 class ClaudeOCRProvider(OCRProvider):
 

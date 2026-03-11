@@ -23,7 +23,6 @@ async def upload_scoresheet( file: UploadFile = File(...), ocr: OCRService = Dep
 
     header, raw_moves = ocr.process_scoresheet(contents)
     moves_dto = parser.parse_scoresheet(header, raw_moves)
-
     return ScoresheetDTO(
         filename=file.filename,
         white=moves_dto["header"].white,
@@ -32,7 +31,7 @@ async def upload_scoresheet( file: UploadFile = File(...), ocr: OCRService = Dep
         black_elo=moves_dto["header"].black_elo,
         date=moves_dto["header"].date,
         tournament=moves_dto["header"].tournament,
-        lang=moves_dto["lang"],
+        lang=moves_dto["ui_lang"],
         moves=moves_dto["moves"],
         status="success",
     )
