@@ -6,8 +6,6 @@ from app.api.routes import api_router
 from dotenv import load_dotenv
 load_dotenv()
 
-load_dotenv()
-
 app = FastAPI(title="Notes to SAN")
 
 app.add_middleware(

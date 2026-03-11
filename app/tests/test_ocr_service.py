@@ -6,7 +6,7 @@ import numpy as np
 import pytest
 
 from app.domain.scoresheet import ScoresheetHeader
-from app.services.ocr_service import OCRService, _sort_and_strip_move_numbers
+from app.services.ocr_service import OCRService, sort_and_strip_move_numbers
 from app.services.preprocessing.pipeline import PreprocessingPipeline
 
 
@@ -34,28 +34,28 @@ def make_json(**overrides) -> str:
 class TestSortAndStripMoveNumbers:
 
     def test_strips_numbers_in_order(self):
-        assert _sort_and_strip_move_numbers(["1. e4", "2. e5", "3. Nf3"]) == ["e4", "e5", "Nf3"]
+        assert sort_and_strip_move_numbers(["1. e4", "2. e5", "3. Nf3"]) == ["e4", "e5", "Nf3"]
 
     def test_sorts_out_of_order(self):
-        assert _sort_and_strip_move_numbers(["3. Nf3", "1. e4", "2. e5"]) == ["e4", "e5", "Nf3"]
+        assert sort_and_strip_move_numbers(["3. Nf3", "1. e4", "2. e5"]) == ["e4", "e5", "Nf3"]
 
     def test_empty_list(self):
-        assert _sort_and_strip_move_numbers([]) == []
+        assert sort_and_strip_move_numbers([]) == []
 
     def test_unnumbered_moves_appended(self):
-        assert _sort_and_strip_move_numbers(["1. e4", "e5"]) == ["e4", "e5"]
+        assert sort_and_strip_move_numbers(["1. e4", "e5"]) == ["e4", "e5"]
 
     def test_strips_extra_whitespace_around_move(self):
-        assert _sort_and_strip_move_numbers(["1.  e4", "2.  e5"]) == ["e4", "e5"]
+        assert sort_and_strip_move_numbers(["1.  e4", "2.  e5"]) == ["e4", "e5"]
 
     def test_black_move_ellipsis_with_space(self):
-        assert _sort_and_strip_move_numbers(["1. e4", "1... e5"]) == ["e4", "e5"]
+        assert sort_and_strip_move_numbers(["1. e4", "1... e5"]) == ["e4", "e5"]
 
     def test_black_move_ellipsis_without_space(self):
-        assert _sort_and_strip_move_numbers(["1. e4", "1...e5"]) == ["e4", "e5"]
+        assert sort_and_strip_move_numbers(["1. e4", "1...e5"]) == ["e4", "e5"]
 
     def test_mixed_white_and_black_notation(self):
-        result = _sort_and_strip_move_numbers(["1. e4", "1... e5", "2. Nf3", "2... Nc6"])
+        result = sort_and_strip_move_numbers(["1. e4", "1... e5", "2. Nf3", "2... Nc6"])
         assert result == ["e4", "e5", "Nf3", "Nc6"]
 
 

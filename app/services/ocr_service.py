@@ -18,6 +18,23 @@ class OCRService:
         raw_text = self._provider.recognize(preprocessed)
         return self._parse(raw_text)
 
+    def process_second_page(self, file_bytes: bytes) -> list[str]:
+        preprocessed = self._pipeline.run(file_bytes)
+        raw_text = self._provider.recognize(preprocessed)
+        return self._parse_moves_only(raw_text)
+
+    def _parse_moves_only(self, raw_text: str) -> list[str]:
+        text = raw_text.strip()
+        if text.startswith("```"):
+            text = text.split("```", 2)[1]
+            if text.startswith("json"):
+                text = text[4:]
+            text = text.rsplit("```", 1)[0].strip()
+
+        data = json.loads(text)
+        raw_moves: list[str] = data.get("raw_moves") or []
+        return sort_and_strip_move_numbers([m for m in raw_moves if m is not None])
+
     def _parse(self, raw_text: str) -> tuple[ScoresheetHeader, list[str]]:
         text = raw_text.strip()
 
@@ -41,10 +58,10 @@ class OCRService:
         )
         raw_moves: list[str] = data.get("raw_moves") or []
 
-        return header, _sort_and_strip_move_numbers(raw_moves)
+        return header, sort_and_strip_move_numbers(raw_moves)
 
 
-def _sort_and_strip_move_numbers(moves: list[str]) -> list[str]:
+def sort_and_strip_move_numbers(moves: list[str]) -> list[str]:
     numbered: list[tuple[int, str]] = []
     unnumbered: list[str] = []
 
