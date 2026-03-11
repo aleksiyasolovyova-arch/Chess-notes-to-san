@@ -36,6 +36,7 @@ class ChessParser:
 
         config = self.grid_configs[lang]["grid_section"]
         cleaned = self._clean_input(raw_input, config["cleaning_rules"])
+        cleaned = self._sanitize_input(cleaned, config)
 
         castling = self._try_parse_castling(raw_input, cleaned, config)
         if castling:
@@ -141,3 +142,15 @@ class ChessParser:
             components['disambiguation'] = remaining
 
         return components
+
+
+    def _sanitize_input(self, text: str, grid_config: Dict) -> str:
+        valid_chars_cfg = grid_config.get("valid_characters", {})
+        allowed = set(
+            valid_chars_cfg.get("letters", []) +
+            valid_chars_cfg.get("numbers", []) +
+            valid_chars_cfg.get("symbols", [])
+        )
+        if not allowed:
+            return text
+        return "".join(c for c in text if c in allowed)
