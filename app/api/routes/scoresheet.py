@@ -1,9 +1,13 @@
 from typing import Dict, Any
 
 from fastapi import APIRouter, UploadFile, File, HTTPException, Depends
+from starlette.responses import PlainTextResponse
 
 from app.api.dependencies import get_ocr_service, get_parsing_service
-from app.api.dtos.scoresheet_dto import ScoresheetDTO
+from app.api.dtos.scoresheet_dto import ScoresheetDTO, PGNRequestDTO
+from app.domain.notation import translate_batch, detect_notation_language
+from app.domain.parser.pgn import to_pgn
+from app.domain.scoresheet import ScoresheetHeader
 from app.services.ocr_service import OCRService
 from app.services.parsing_service import ParsingService
 
@@ -23,7 +27,6 @@ async def upload_scoresheet( file: UploadFile = File(...), ocr: OCRService = Dep
 
     header, raw_moves = ocr.process_scoresheet(contents)
     moves_dto = parser.parse_scoresheet(header, raw_moves)
-
     return ScoresheetDTO(
         filename=file.filename,
         white=moves_dto["header"].white,
@@ -32,7 +35,7 @@ async def upload_scoresheet( file: UploadFile = File(...), ocr: OCRService = Dep
         black_elo=moves_dto["header"].black_elo,
         date=moves_dto["header"].date,
         tournament=moves_dto["header"].tournament,
-        lang=moves_dto["lang"],
+        lang=moves_dto["ui_lang"],
         moves=moves_dto["moves"],
         status="success",
     )

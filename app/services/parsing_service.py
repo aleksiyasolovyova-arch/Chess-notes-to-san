@@ -3,10 +3,12 @@ from pathlib import Path
 import json
 from typing import Dict, Any, List
 
+
 from app.domain.parser.chess_parser import ChessParser
 from app.domain.parsed_output import ParsedMove
 from app.api.dtos.move_dto import MoveDTO
 from app.domain.scoresheet import ScoresheetHeader
+from app.domain.parser.pgn import to_pgn
 
 
 class ParsingService:
@@ -37,16 +39,18 @@ class ParsingService:
     ) -> Dict[str, Any]:
         clean_header = self._validate_header(header)
 
-        lang = clean_header.lang
-        if lang not in self.parser.grid_configs:
-            lang = self.parser.detect_notation_language(raw_moves)
+        ui_lang = clean_header.lang if clean_header.lang in self.parser.grid_configs else "en"
 
-        parsed_moves = self.parser.parse_batch(raw_moves, lang)
+        notation_lang = self.parser.detect_notation_language(raw_moves)
+
+        parsed_moves: List[ParsedMove] = self.parser.parse_batch(raw_moves, notation_lang)
 
         return {
-            "lang": lang,
+            "ui_lang": ui_lang,
+            "notation_lang": notation_lang,
             "header": clean_header,
             "moves": [self._to_dto(m) for m in parsed_moves],
+            "parsed_moves": parsed_moves,
         }
 
     def _validate_header(self, header: ScoresheetHeader) -> ScoresheetHeader:
@@ -82,3 +86,6 @@ class ParsingService:
             san_intent=move.san_intent,
             is_valid_syntax=move.is_valid_syntax,
         )
+
+    def to_pgn(self, header: ScoresheetHeader, moves_list: list[str]) -> str:
+        return to_pgn(header, moves_list)

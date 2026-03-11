@@ -6,7 +6,7 @@ import numpy as np
 import pytest
 
 from app.domain.scoresheet import ScoresheetHeader
-from app.services.ocr_service import OCRService
+from app.services.ocr_service import OCRService, _sort_and_strip_move_numbers
 from app.services.preprocessing.pipeline import PreprocessingPipeline
 
 
@@ -25,10 +25,38 @@ def make_json(**overrides) -> str:
         "date": "2026-01-01",
         "tournament": "Club Championship",
         "lang": "en",
-        "raw_moves": ["e4", "e5", "Nf3"],
+        "raw_moves": ["1. e4", "2. e5", "3. Nf3"],
     }
     data.update(overrides)
     return json.dumps(data)
+
+
+class TestSortAndStripMoveNumbers:
+
+    def test_strips_numbers_in_order(self):
+        assert _sort_and_strip_move_numbers(["1. e4", "2. e5", "3. Nf3"]) == ["e4", "e5", "Nf3"]
+
+    def test_sorts_out_of_order(self):
+        assert _sort_and_strip_move_numbers(["3. Nf3", "1. e4", "2. e5"]) == ["e4", "e5", "Nf3"]
+
+    def test_empty_list(self):
+        assert _sort_and_strip_move_numbers([]) == []
+
+    def test_unnumbered_moves_appended(self):
+        assert _sort_and_strip_move_numbers(["1. e4", "e5"]) == ["e4", "e5"]
+
+    def test_strips_extra_whitespace_around_move(self):
+        assert _sort_and_strip_move_numbers(["1.  e4", "2.  e5"]) == ["e4", "e5"]
+
+    def test_black_move_ellipsis_with_space(self):
+        assert _sort_and_strip_move_numbers(["1. e4", "1... e5"]) == ["e4", "e5"]
+
+    def test_black_move_ellipsis_without_space(self):
+        assert _sort_and_strip_move_numbers(["1. e4", "1...e5"]) == ["e4", "e5"]
+
+    def test_mixed_white_and_black_notation(self):
+        result = _sort_and_strip_move_numbers(["1. e4", "1... e5", "2. Nf3", "2... Nc6"])
+        assert result == ["e4", "e5", "Nf3", "Nc6"]
 
 
 class TestPreprocessingPipeline:
@@ -92,6 +120,16 @@ class TestOCRServiceParse:
     def test_moves_list(self, service):
         _, moves = service._parse(make_json())
         assert moves == ["e4", "e5", "Nf3"]
+
+    def test_moves_sorted_by_number(self, service):
+        scrambled = make_json(raw_moves=["3. Nf3", "1. e4", "2. e5"])
+        _, moves = service._parse(scrambled)
+        assert moves == ["e4", "e5", "Nf3"]
+
+    def test_moves_without_numbers_pass_through(self, service):
+        mixed = make_json(raw_moves=["1. e4", "e5", "3. Nf3"])
+        _, moves = service._parse(mixed)
+        assert moves == ["e4", "Nf3", "e5"]
 
     @pytest.mark.parametrize("field,expected", [
         ("white", "Unknown"),
