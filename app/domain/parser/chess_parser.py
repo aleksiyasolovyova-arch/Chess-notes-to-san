@@ -36,6 +36,7 @@ class ChessParser:
 
         config = self.grid_configs[lang]["grid_section"]
         cleaned = self._clean_input(raw_input, config["cleaning_rules"])
+        cleaned = self._normalize_file_letters(cleaned)
         cleaned = self._sanitize_input(cleaned, config)
 
         castling = self._try_parse_castling(raw_input, cleaned, config)
@@ -154,3 +155,7 @@ class ChessParser:
         if not allowed:
             return text
         return "".join(c for c in text if c in allowed)
+
+    def _normalize_file_letters(self, text: str) -> str:
+        return re.sub(r'([A-H])(?=[1-8])', lambda m: m.group(1).lower(), text)
+

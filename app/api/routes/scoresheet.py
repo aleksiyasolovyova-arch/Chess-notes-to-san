@@ -1,10 +1,11 @@
 from typing import Optional
-from fastapi import APIRouter, UploadFile, File, HTTPException, Depends
+from fastapi import APIRouter, UploadFile, File, HTTPException, Depends, Form
 
 from app.api.dependencies import get_ocr_service, get_parsing_service
 from app.api.dtos.scoresheet_dto import ScoresheetDTO
 from app.services.ocr_service import OCRService
 from app.services.parsing_service import ParsingService
+from app.services.ocr_service import sort_and_strip_move_numbers
 
 router = APIRouter(prefix="/api/scoresheets", tags=["scoresheets"])
 
@@ -16,6 +17,7 @@ ACCEPTED_TYPES = {"image/jpeg", "image/png", "image/webp", "application/pdf"}
 async def upload_scoresheet(
     file: UploadFile = File(...),
     file2: Optional[UploadFile] = File(None),
+    ui_lang: str = Form("en"),
     ocr: OCRService = Depends(get_ocr_service),
     parser: ParsingService = Depends(get_parsing_service),
 ):
@@ -38,6 +40,7 @@ async def upload_scoresheet(
         raw_moves = _merge_pages(raw_moves, moves_page2)
 
     moves_dto = parser.parse_scoresheet(header, raw_moves)
+    print(moves_dto)
 
     return ScoresheetDTO(
         filename=file.filename,
@@ -47,13 +50,13 @@ async def upload_scoresheet(
         black_elo=moves_dto["header"].black_elo,
         date=moves_dto["header"].date,
         tournament=moves_dto["header"].tournament,
-        lang=moves_dto["ui_lang"],
+        lang=ui_lang,
         moves=moves_dto["moves"],
         status="success",
     )
 
 
+
+
 def _merge_pages(page1_moves: list[str], page2_moves: list[str]) -> list[str]:
-    """Concatenate moves from both pages; _sort_and_strip_move_numbers will order them."""
-    from app.services.ocr_service import sort_and_strip_move_numbers
     return sort_and_strip_move_numbers(page1_moves + page2_moves)
