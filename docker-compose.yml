@@ -1,6 +1,7 @@
 services:
   backend:
     image: registry.gitlab.com/kdg-ti/the-lab/teams-25-26/19-fae-notes2san/notes-to-san:latest
+    pull_policy: always
     env_file: .env
     ports:
       - "8000:8000"
@@ -8,6 +9,7 @@ services:
 
   frontend:
     image: registry.gitlab.com/kdg-ti/the-lab/teams-25-26/19-fae-notes2san/chess-frontend:latest
+    pull_policy: always
     environment:
       - API_URL=http://backend:8000
     ports:
