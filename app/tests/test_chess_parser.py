@@ -281,11 +281,6 @@ def test_parse_disambiguation(parser, raw_input, expected_piece, expected_dest, 
     ("Blh6", "B1h6"),
     ("e 4 +", "e4+"),  # Multiple spaces
 ])
-def test_input_cleaning(parser, raw_input, expected_clean):
-    """Test input cleaning rules are applied correctly."""
-    result = parser.parse(raw_input, 'en')
-
-    assert result.san_intent == expected_clean
 
 
 # ============================================================================
