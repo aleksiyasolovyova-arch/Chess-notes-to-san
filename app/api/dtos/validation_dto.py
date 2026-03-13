@@ -11,6 +11,7 @@ class MoveValidationResultDTO(BaseModel):
     move: str
     legal: bool
     reason: Optional[str] = None
+    suggestion: Optional[str] = None
 
 
 class ValidateResponseDTO(BaseModel):

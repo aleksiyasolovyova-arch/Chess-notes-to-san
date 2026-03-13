@@ -1,11 +1,11 @@
 from typing import Dict, Any, List
 import chess
 from app.domain.validator.explanation import explain_illegal, TRANSLATIONS
+from app.domain.validator.correction import _find_correction
 
 
 class MoveValidator:
     SUPPORTED_LANGUAGES = set(TRANSLATIONS.keys())
-
 
     def validate_moves(self, moves: List[str], lang: str = "en") -> Dict[str, Any]:
         if lang not in self.SUPPORTED_LANGUAGES:
@@ -15,16 +15,22 @@ class MoveValidator:
         board = chess.Board()
         results = []
 
-        for move in moves:
+        for i, move in enumerate(moves):
             try:
                 board.push_san(move)
                 results.append({"move": move, "legal": True})
-            except ValueError as e:
-                if "invalid" in str(e):
-                    reason = t["not_valid_notation"]
+            except ValueError:
+                reason = explain_illegal(board, move, lang=lang)
+
+                suggestion, _ = _find_correction(board, moves, i)
+                entry = {"move": move, "legal": False, "reason": reason}
+                if suggestion:
+                    entry["suggestion"] = suggestion
+                    board.push_san(suggestion)
                 else:
-                    reason = explain_illegal(board, move, lang=lang)
-                results.append({"move": move, "legal": False, "reason": reason})
+                    board.push(chess.Move.null())
+
+                results.append(entry)
 
         all_legal = all(r["legal"] for r in results)
         return {"all_legal": all_legal, "moves": results}

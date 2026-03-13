@@ -79,6 +79,9 @@ def _parse_san_parts(san):
     if clean in ("O-O", "O-O-O"):
         return chess.KING, None, None
 
+    if not clean:
+        return None, None, None
+
     if "=" in clean:
         clean = clean.split("=")[0]
 
