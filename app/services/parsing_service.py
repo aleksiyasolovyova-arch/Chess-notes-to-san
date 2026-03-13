@@ -39,14 +39,12 @@ class ParsingService:
     ) -> Dict[str, Any]:
         clean_header = self._validate_header(header)
 
-        ui_lang = clean_header.lang if clean_header.lang in self.parser.grid_configs else "en"
 
         notation_lang = self.parser.detect_notation_language(raw_moves)
 
         parsed_moves: List[ParsedMove] = self.parser.parse_batch(raw_moves, notation_lang)
 
         return {
-            "ui_lang": ui_lang,
             "notation_lang": notation_lang,
             "header": clean_header,
             "moves": [self._to_dto(m) for m in parsed_moves],
