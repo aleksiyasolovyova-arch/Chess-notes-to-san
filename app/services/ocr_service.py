@@ -56,7 +56,7 @@ class OCRService:
             tournament=data.get("tournament") or "",
             lang=data.get("lang") or "en",
         )
-        raw_moves: list[str] = data.get("raw_moves") or []
+        raw_moves: list[str] = [m for m in (data.get("raw_moves") or []) if m is not None]
 
         return header, sort_and_strip_move_numbers(raw_moves)
 

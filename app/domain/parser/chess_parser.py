@@ -27,7 +27,7 @@ class ChessParser:
         if lang not in self.grid_configs:
             available = ", ".join(sorted(self.grid_configs.keys()))
             raise ValueError(f"Language '{lang}' not supported. Available: {available}")
-        return [self.parse(move, lang) for move in raw_moves]
+        return [self.parse(move, lang) for move in raw_moves if move is not None]
 
     def parse(self, raw_input: str, lang: str = "en") -> ParsedMove:
         if lang not in self.grid_configs:

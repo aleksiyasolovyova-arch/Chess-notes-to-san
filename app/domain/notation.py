@@ -11,7 +11,7 @@ NOTATION_CONFIG: Dict[str, Dict[str, str]] = {
 def detect_notation_language(raw_moves: List[str]) -> str:
     pieces = set()
     for move in raw_moves[:10]:
-        match = re.match(r'^([KQRBNDTLFP])', move)
+        match = re.match(r'^([KQRBNDTLFPC])', move)
         if match:
             pieces.add(match.group(1))
 
