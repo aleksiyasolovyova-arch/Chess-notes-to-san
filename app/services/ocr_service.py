@@ -46,7 +46,7 @@ class OCRService:
             text = text.rsplit("```", 1)[0].strip()
 
         data = json.loads(text)
-
+        print(f"[DEBUG] raw OCR data: {data}\n")
         header = ScoresheetHeader(
             white=data.get("white") or "Unknown",
             white_elo=data.get("white_elo") or 0,
@@ -55,6 +55,7 @@ class OCRService:
             date=data.get("date") or "",
             tournament=data.get("tournament") or "",
             lang=data.get("lang") or "en",
+            result=data.get("result") or "",
         )
         raw_moves: list[str] = [m for m in (data.get("raw_moves") or []) if m is not None]
 

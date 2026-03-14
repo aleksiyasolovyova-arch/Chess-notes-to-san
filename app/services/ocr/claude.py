@@ -17,6 +17,7 @@ Return a JSON object with exactly these fields:
   "date": "<date in YYYY-MM-DD format, or null if not present>",
   "tournament": "<tournament name as a string, or null if not present>",
   "lang": "<language code: en, fr, or nl>",
+  "result": "<game result as one of: 1-0, 0-1, 1/2-1/2, or null if not present>",
   "raw_moves": ["1. <white_move1>", "1... <black_move1>", "2. <white_move2>", "2... <black_move2>", ...]
 }
 
@@ -24,6 +25,7 @@ Rules:
 - raw_moves: flat list of individual moves using the move numbers printed on the scoresheet — white moves as "N. move" and black moves as "N... move" (e.g. "1. e4", "1... e5", "2. Nf3", "2... Nc6")
 - Preserve move notation exactly as written on the scoresheet (keep original piece letters — e.g. Dutch uses P/L/T/D/K, French uses C/F/T/D/R)
 - lang: infer from piece letter conventions or header text (en=English, fr=French, nl=Dutch)
+- result: some scoresheets have two stacked boxes (white score on top, black score below) labeled "uitslag", "result", or "résultat" — combine them into a single result string (e.g. top=1, bottom=0 → "1-0"; top=0, bottom=1 → "0-1"; top=½, bottom=½ → "1/2-1/2")
 - Return only the JSON object — no markdown, no explanation, no extra text
 """
 

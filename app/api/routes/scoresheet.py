@@ -53,6 +53,7 @@ async def upload_scoresheet(
         lang=ui_lang,
         moves=moves_dto["moves"],
         status="success",
+        result=moves_dto["header"].result,
     )
 
 

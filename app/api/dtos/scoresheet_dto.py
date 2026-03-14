@@ -15,6 +15,7 @@ class ScoresheetDTO(BaseModel):
     lang: str
     moves: List[MoveDTO]
     status: str
+    result: Optional[str] = None
 
 class PGNRequestDTO(BaseModel):
     white: str
@@ -22,4 +23,5 @@ class PGNRequestDTO(BaseModel):
     date: str
     tournament: str
     moves: List[str]
+    result: str
     notation_lang: str = "en"

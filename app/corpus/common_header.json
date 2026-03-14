@@ -20,9 +20,19 @@
         "keywords": ["Elo", "elo", "Rating", "rating", "Elo:", "Rating:", "Classement", "classement"],
         "pattern": "^(?:0|[1-9]\\d{0,2}|[12]\\d{3}|3000)?$"
       },
-      "result": {
-        "keywords": ["Result", "result", "Result:", "Resultaat", "Uitslag", "uitslag", "resultaat", "Résultat", "résultat"],
-        "valid_values": ["1-0", "0-1", "½-½", "1/2-1/2", "0.5-0.5", "*"]
-      }
+     "result": {
+    "keywords": ["Result", "result", "Resultaat", "Uitslag", "uitslag", "resultaat", "Résultat", "résultat"],
+    "valid_values": ["1-0", "0-1", "½-½", "1/2-1/2", "*"],
+    "split_box": {
+        "valid_parts": ["1", "0", "½", "1/2", "0.5"],
+        "combine_map": {
+            "1+0": "1-0",
+            "0+1": "0-1",
+            "½+½": "½-½",
+            "1/2+1/2": "½-½",
+            "0.5+0.5": "½-½"
+        }
+    }
+}
   }
 }

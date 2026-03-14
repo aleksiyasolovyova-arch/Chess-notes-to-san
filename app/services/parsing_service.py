@@ -52,6 +52,7 @@ class ParsingService:
         }
 
     def _validate_header(self, header: ScoresheetHeader) -> ScoresheetHeader:
+        print(f"[DEBUG] raw result from OCR: repr={repr(header.result)}")
         fields_cfg = self._header_config.get("fields", {})
 
         date = header.date
@@ -67,6 +68,28 @@ class ParsingService:
                 white_elo = 0
             if not re.fullmatch(rating_pattern, str(black_elo)):
                 black_elo = 0
+        result_cfg = fields_cfg.get("result", {})
+        result = header.result
+        valid_values = result_cfg.get("valid_values", [])
+        split_cfg = result_cfg.get("split_box", {})
+
+        if result not in valid_values:
+            combine_map = split_cfg.get("combine_map", {})
+            valid_parts = split_cfg.get("valid_parts", [])
+
+            normalized = (
+                result
+                .replace(" ", "+")
+                .replace("/", "+", 1)
+                .replace("-", "+", 1)
+            )
+
+            if result not in valid_values and len(result) == 2 and result[0] in valid_parts and result[
+                1] in valid_parts:
+                normalized = f"{result[0]}+{result[1]}"
+
+            result = combine_map.get(normalized, "*")
+
 
         return ScoresheetHeader(
             white=header.white,
@@ -76,6 +99,7 @@ class ParsingService:
             date=date,
             tournament=header.tournament,
             lang=header.lang,
+            result=result,
         )
 
     def _to_dto(self, move: ParsedMove) -> MoveDTO:
