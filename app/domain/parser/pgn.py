@@ -4,6 +4,7 @@ from app.domain.scoresheet import ScoresheetHeader
 
 
 def to_pgn(header: ScoresheetHeader, moves_san: List[str]) -> str:
+    result = header.result or "*"
     tags = [
         f'[Event "{header.tournament or "?"}"]',
         f'[Site "?"]',
@@ -13,7 +14,7 @@ def to_pgn(header: ScoresheetHeader, moves_san: List[str]) -> str:
         f'[Black "{header.black or "?"}"]',
         f'[WhiteElo "{header.white_elo or "?"}"]',
         f'[BlackElo "{header.black_elo or "?"}"]',
-        f'[Result "*"]',
+        f'[Result "{result}"]',
     ]
 
     parts = []

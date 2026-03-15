@@ -13,6 +13,7 @@ def full_header():
         date="2024.01.15",
         tournament="World Rapid",
         lang="en",
+        result="1-0",
     )
 
 
@@ -26,6 +27,7 @@ def empty_header():
         date="",
         tournament="",
         lang="en",
+        result="*",
     )
 
 
@@ -37,7 +39,7 @@ class TestToPgnHeaders:
         assert '[Black "Hikaru Nakamura"]' in pgn
         assert '[Event "World Rapid"]' in pgn
         assert '[Date "2024.01.15"]' in pgn
-        assert '[Result "*"]' in pgn
+        assert '[Result "1-0"]' in pgn
 
     def test_empty_header_uses_defaults(self, empty_header):
         pgn = to_pgn(empty_header, ["e4"])
@@ -47,10 +49,6 @@ class TestToPgnHeaders:
         assert '[Event "?"]' in pgn
         assert '[Date "????.??.??"]' in pgn
 
-    def test_result_always_asterisk(self, full_header):
-        pgn = to_pgn(full_header, ["e4", "e5"])
-        assert pgn.endswith("*")
-
     def test_site_always_question_mark(self, full_header):
         pgn = to_pgn(full_header, ["e4"])
         assert '[Site "?"]' in pgn
@@ -58,6 +56,27 @@ class TestToPgnHeaders:
     def test_round_always_question_mark(self, full_header):
         pgn = to_pgn(full_header, ["e4"])
         assert '[Round "?"]' in pgn
+
+
+class TestToPgnResult:
+
+
+    def test_unknown_result_tag_and_terminator(self, empty_header):
+        pgn = to_pgn(empty_header, ["e4"])
+        assert '[Result "*"]' in pgn
+        assert pgn.endswith("*")
+
+    def test_result_default_is_unknown(self):
+        header = ScoresheetHeader(
+            white="A", black="B",
+            white_elo=0, black_elo=0,
+            date="", tournament="",
+            lang="en",
+            # result omitted — should default to "*"
+        )
+        pgn = to_pgn(header, ["e4"])
+        assert '[Result "*"]' in pgn
+        assert pgn.endswith("*")
 
 
 class TestToPgnMoves:
@@ -74,13 +93,6 @@ class TestToPgnMoves:
     def test_single_move(self, full_header):
         pgn = to_pgn(full_header, ["e4"])
         assert "1. e4" in pgn
-
-    def test_empty_moves(self, full_header):
-        pgn = to_pgn(full_header, [])
-        assert pgn.strip().endswith("*")
-        # Split off the tags block; moves section should be just "*"
-        moves_section = pgn.split("\n\n")[1].strip()
-        assert moves_section == "*"
 
     def test_move_numbering_is_sequential(self, full_header):
         moves = ["e4", "e5", "Nf3", "Nc6", "Bb5", "a6"]

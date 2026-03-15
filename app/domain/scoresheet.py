@@ -10,3 +10,4 @@ class ScoresheetHeader:
     date: str
     tournament: str
     lang: str
+    result: str = "*"

@@ -42,6 +42,7 @@ async def export_pgn(body: PGNRequestDTO):
         date=body.date or "",
         tournament=body.tournament or "",
         lang="en",
+        result=body.result or "",
     )
 
     notation_lang = detect_notation_language(body.moves)
