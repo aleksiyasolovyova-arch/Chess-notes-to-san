@@ -31,7 +31,7 @@ Rules:
 
 class ClaudeOCRProvider(OCRProvider):
 
-    def __init__(self, model: str = "claude-sonnet-4-5") -> None:
+    def __init__(self, model: str = "claude-sonnet-4-6") -> None:
         self._client = anthropic.Anthropic(api_key=os.environ["ANTHROPIC_API_KEY"])
         self._model = model
 
